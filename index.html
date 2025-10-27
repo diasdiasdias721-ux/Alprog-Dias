@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Statistik Kecamatan Kabupaten Boyolali</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: #f8fafc;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #38bdf8;
+      margin-bottom: 12px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      margin-bottom: 10px;
+    }
+    .logo {
+      width: 130px;
+      height: 130px;
+      border-radius: 18px;
+      margin: 12px 0 10px 0;
+      object-fit: contain;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      background: #fff;
+      border: 2px solid #0ea5e9;
+      transition: box-shadow 0.3s;
+    }
+    .logo:hover {
+      box-shadow: 0 8px 24px rgba(56,189,248,0.20);
+    }
+    .chart-container {
+      max-width: 770px;
+      margin: 36px auto 24px auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 2px 12px rgba(56,189,248,0.12);
+      padding: 34px 18px;
+      color: #334155;
+    }
+    .chart-title {
+      text-align: center;
+      font-size: 1.2em;
+      font-weight: 600;
+      color: #0ea5e9;
+      margin-bottom: 16px;
+      letter-spacing: 0.02em;
+    }
+    .table-container {
+      max-width: 770px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 12px;
+      margin: 0 auto;
+      padding-top: 12px;
+      box-shadow: 0 2px 8px rgba(30,41,59,0.14);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td {
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 10px 7px;
+      text-align: left;
+    }
+    th {
+      background-color: #0ea5e9;
+      color: #fff;
+    }
+    tr:nth-child(even) {
+      background-color: rgba(255,255,255,0.03);
+    }
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 16px 0 10px 0;
+      gap: 16px;
+    }
+    .pagination button {
+      background: #38bdf8;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 18px;
+      font-size: 1em;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.22s;
+    }
+    .pagination button:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+    .page-info {
+      color: #0ea5e9;
+      font-weight: bold;
+    }
+    @media(max-width:900px){
+      .chart-container, .table-container {padding:10px;}
+      table{font-size:13px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Data Statistik Setiap Kecamatan di Kabupaten Boyolali (BPS 2024)</h1>
+    <img class="logo"
+         src="https://logobagus.com/wp-content/uploads/2024/02/logo-kabupaten-Boyolali.png"
+         alt="Logo Kabupaten Boyolali">
+  </div>
+
+  <div class="chart-container">
+    <div class="chart-title">
+      Diagram Lingkaran: Distribusi Populasi Seluruh Kecamatan Kabupaten Boyolali Tahun 2024
+    </div>
+    <canvas id="pieChartBoyolali" width="660" height="660"></canvas>
+  </div>
+
+  <div class="table-container">
+    <table id="boyolaliTable">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Nama Kecamatan</th>
+          <th>Luas (km²)</th>
+          <th>Populasi (jiwa)</th>
+          <th>Kepadatan (jiwa/km²)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Data will be filled by JS -->
+      </tbody>
+    </table>
+    <div class="pagination">
+      <button id="prevBtn">Prev</button>
+      <span class="page-info" id="pageInfo"></span>
+      <button id="nextBtn">Next</button>
+    </div>
+  </div>
+
+  <script>
+    // DATA TABEL
+    const kecamatanData = [
+      {no:1, nama:"Ampel", luas:47.58, pop:45660, padat:960},
+      {no:2, nama:"Andong", luas:45.61, pop:47889, padat:1050},
+      {no:3, nama:"Banyudono", luas:36.54, pop:57232, padat:1566},
+      {no:4, nama:"Boyolali", luas:25.30, pop:64435, padat:2547},
+      {no:5, nama:"Cepogo", luas:43.82, pop:46200, padat:1055},
+      {no:6, nama:"Gladagsari", luas:35.10, pop:30590, padat:871},
+      {no:7, nama:"Juwangi", luas:68.45, pop:44210, padat:646},
+      {no:8, nama:"Karanggede", luas:52.85, pop:49982, padat:946},
+      {no:9, nama:"Kemusu", luas:66.11, pop:40638, padat:615},
+      {no:10, nama:"Klego", luas:41.73, pop:47702, padat:1143},
+      {no:11, nama:"Mojosongo", luas:35.48, pop:61423, padat:1732},
+      {no:12, nama:"Musuk", luas:57.24, pop:47880, padat:836},
+      {no:13, nama:"Ngemplak", luas:38.53, pop:87535, padat:2272},
+      {no:14, nama:"Nogosari", luas:44.25, pop:50452, padat:1140},
+      {no:15, nama:"Sambi", luas:42.01, pop:57318, padat:1364},
+      {no:16, nama:"Sawit", luas:47.60, pop:65442, padat:1375},
+      {no:17, nama:"Selo", luas:48.50, pop:28210, padat:582},
+      {no:18, nama:"Simo", luas:43.91, pop:48400, padat:1102},
+      {no:19, nama:"Tamansari", luas:40.75, pop:46915, padat:1151},
+      {no:20, nama:"Teras", luas:31.22, pop:53006, padat:1697},
+      {no:21, nama:"Wonosamodro", luas:62.42, pop:37562, padat:602},
+      {no:22, nama:"Wonosegoro", luas:71.75, pop:41905, padat:584}
+    ];
+
+    const rowsPerPage = 5;
+    let currentPage = 1;
+    const tbody = document.querySelector('#boyolaliTable tbody');
+    const pageInfo = document.getElementById('pageInfo');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    function renderTable(page) {
+      tbody.innerHTML = '';
+      const start = (page-1)*rowsPerPage;
+      const end = Math.min(start+rowsPerPage, kecamatanData.length);
+      for(let i = start; i < end; i++){
+        const row = kecamatanData[i];
+        tbody.innerHTML += `
+          <tr>
+            <td>${row.no}</td>
+            <td>${row.nama}</td>
+            <td>${row.luas}</td>
+            <td>${row.pop.toLocaleString('id-ID')}</td>
+            <td>${row.padat}</td>
+          </tr>
+        `;
+      }
+      pageInfo.textContent = `Halaman ${page} dari ${Math.ceil(kecamatanData.length/rowsPerPage)}`;
+      prevBtn.disabled = (page === 1);
+      nextBtn.disabled = (end === kecamatanData.length);
+    }
+
+    prevBtn.onclick = () => { if(currentPage>1){ currentPage--; renderTable(currentPage);}};
+    nextBtn.onclick = () => { if((currentPage*rowsPerPage) < kecamatanData.length){ currentPage++; renderTable(currentPage);}};
+
+    renderTable(currentPage);
+
+    // DATA PIE CHART
+    const labels = kecamatanData.map(row => row.nama);
+    const dataPie = kecamatanData.map(row => row.pop);
+    const backgroundColors = [
+      '#22d3ee','#38bdf8','#818cf8','#f472b6','#f59e42','#facc15','#bbf7d0',
+      '#a3e635','#bef264','#fee2e2','#d4cfc8','#9ca3af','#10b981','#7dd3fc',
+      '#fbbf24','#fb7185','#818cf8','#a78bfa','#f97316','#14b8a6','#eab308','#ef4444'
+    ];
+
+    // Agar label legend menyertakan angka
+    const labelWithValue = kecamatanData.map(row => row.nama + " (" + row.pop.toLocaleString('id-ID') + ")");
+
+    new Chart(document.getElementById('pieChartBoyolali'), {
+      type: 'pie',
+      data: {
+        labels: labelWithValue,
+        datasets: [{
+          label: 'Populasi',
+          data: dataPie,
+          backgroundColor: backgroundColors,
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              boxWidth: 16,
+              font: { size: 13 },
+              color: '#334155'
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                let label = context.label || '';
+                let value = context.parsed;
+                let total = context.dataset.data.reduce((a,b) => a+b,0);
+                let percentage = ((value / total) * 100).toFixed(2) + '%';
+                return label + ': ' + value.toLocaleString('id-ID') + ' jiwa (' + percentage + ')';
+              }
+            }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
